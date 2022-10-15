@@ -58,4 +58,6 @@ class Handler:
 
     def statscount(self):
         timescale = [sent.time for sent in self.result if sent.rewritten]
-        return [round(statistics.mean(timescale), 2), round(statistics.median(timescale), 2), round(statistics.stdev(timescale), 2), len(timescale)]
+        if timescale:
+            return [round(statistics.mean(timescale), 2), round(statistics.median(timescale), 2), round(statistics.stdev(timescale), 2), len(timescale)]
+        return

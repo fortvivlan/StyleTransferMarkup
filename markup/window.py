@@ -137,8 +137,11 @@ class Window(qtwidgets.QMainWindow):
     def stats(self):
         """count time statistics"""
         data = self.handler.statscount()
-        self.statwin = Stats(data)
-        self.statwin.show()
+        if data:
+            self.statwin = Stats(data)
+            self.statwin.show()
+        else:
+            qtwidgets.QMessageBox.about(self, 'Warning', 'No texts labelled')
 
     def nextSent(self):
         text = self.handler.roll(self.recipient.toPlainText())
