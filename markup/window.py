@@ -118,6 +118,8 @@ class Window(qtwidgets.QMainWindow):
             qtwidgets.QMessageBox.about(self, 'Error', 'Open .txt file')
         else:
             self.donor.clear()
+            self.recipient.clear()
+            self.counter.setText(str(self.handler.index + 1))
             self.donor.insertPlainText(text) 
             self.total.setText(str(len(self.handler.result)))
 
@@ -128,6 +130,7 @@ class Window(qtwidgets.QMainWindow):
             return
         if self.handler.timecheck: 
             self.timerAction.setIcon(qtgui.QIcon('markup/style/timergray.png'))
+            self.handler.result[self.handler.index].time += time() - self.handler.timesave
             self.handler.timecheck = False 
         else:
             self.timerAction.setIcon(qtgui.QIcon('markup/style/timer.png'))

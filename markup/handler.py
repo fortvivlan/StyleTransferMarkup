@@ -30,6 +30,7 @@ class Handler:
             try:
                 with open(filepath, 'r', encoding='utf8') as file:
                     self.result = [Sentence(line.rstrip()) for line in file.readlines()]
+                    self.index = 0
                     self.file = filepath
                     return self.result[0].original
             except UnicodeDecodeError:
