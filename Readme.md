@@ -20,7 +20,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Installing PyQt5 on Mac M1
+### Mac M1
 
 ```
 python3 -m pip install -U pip
