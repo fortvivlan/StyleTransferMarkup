@@ -36,10 +36,10 @@ class Window(qtwidgets.QMainWindow):
         self._createToolBars()
 
         # I want my favourite font!
-        fontId = qtgui.QFontDatabase.addApplicationFont("markup/style/maiola.ttf")
-        if fontId < 0:
-            print('font not loaded')
-        families = qtgui.QFontDatabase.applicationFontFamilies(fontId)
+        fontId = qtgui.QFontDatabase.addApplicationFont("./markup/style/maiola.ttf")
+        if fontId > 0:
+            # print('font not loaded')
+            families = qtgui.QFontDatabase.applicationFontFamilies(fontId)
         
         # donor for raw text, recipient for rewritten text
         self.donor = qtwidgets.QPlainTextEdit(self)
@@ -47,13 +47,26 @@ class Window(qtwidgets.QMainWindow):
         self.recipient = qtwidgets.QPlainTextEdit(self)
         grid.addWidget(self.donor)
         grid.addWidget(self.recipient)
-        f = qtgui.QFont(families[0], 14)
-        self.donor.setFont(f)
-        self.recipient.setFont(f)
+        if fontId > 0:
+            f = qtgui.QFont(families[0], 14)
+            self.donor.setFont(f)
+            self.recipient.setFont(f)
         # If there has been some labelled text
         if self.handler.result:
             self.donor.insertPlainText(self.handler.result[self.handler.index].original)
             self.recipient.insertPlainText(self.handler.result[self.handler.index].rewritten)
+        
+        self.cb_unable_to_paraphrase = qtwidgets.QCheckBox(self)
+        grid.addWidget(self.cb_unable_to_paraphrase)
+        self.cb_unable_to_paraphrase.setText("Не получается перефразировать")
+
+        self.cb_is_already_formal = qtwidgets.QCheckBox(self)
+        grid.addWidget(self.cb_is_already_formal)
+        self.cb_is_already_formal.setText("Уже в формальном стиле")
+
+        self.cb_has_artefacts = qtwidgets.QCheckBox(self)
+        grid.addWidget(self.cb_has_artefacts)
+        self.cb_has_artefacts.setText("Оригинал содержит артефакты разметки")
 
     def _createMenuBar(self):
         menuBar = self.menuBar()
@@ -144,30 +157,45 @@ class Window(qtwidgets.QMainWindow):
             self.statwin = Stats(data)
             self.statwin.show()
         else:
-            qtwidgets.QMessageBox.about(self, 'Warning', 'No texts labelled')
+            qtwidgets.QMessageBox.about(self, 'Warning', 'No texts or not enogh texts labelled')
 
     def nextSent(self):
-        text = self.handler.roll(self.recipient.toPlainText())
+        sentence = self.handler.roll(
+            self.recipient.toPlainText(),
+            self.cb_unable_to_paraphrase.isChecked(),
+            self.cb_is_already_formal.isChecked(),
+            self.cb_has_artefacts.isChecked(),
+            roll_next=True
+        )
         self.counter.setText(str(self.handler.index + 1))
-        self.setOriginal(text)
+        self.setOriginal(sentence)
 
     def prevSent(self):
-        text = self.handler.roll(self.recipient.toPlainText(), False)
+        sentence = self.handler.roll(
+            self.recipient.toPlainText(),
+            self.cb_unable_to_paraphrase.isChecked(),
+            self.cb_is_already_formal.isChecked(),
+            self.cb_has_artefacts.isChecked(),
+            roll_next=False
+        )
         self.counter.setText(str(self.handler.index + 1))
-        self.setOriginal(text)
+        self.setOriginal(sentence)
 
     def _getsaved(self):
         if not os.path.exists('settings.bin'):
             return {'result': [], 'index': 0, 'path': None}
         return pickle.load(open('settings.bin', 'rb'))    
 
-    def setOriginal(self, text):
+    def setOriginal(self, sentence):
         """load text into gui"""
-        if text:
+        if sentence:
             self.donor.clear()
-            self.donor.insertPlainText(text[0])
+            self.donor.insertPlainText(sentence.original)
             self.recipient.clear()
-            self.recipient.insertPlainText(text[1])
+            self.recipient.insertPlainText(sentence.rewritten)
+            self.cb_unable_to_paraphrase.setChecked(sentence.unable_to_paraphrase)
+            self.cb_is_already_formal.setChecked(sentence.is_already_formal)
+            self.cb_has_artefacts.setChecked(sentence.has_artefacts)
         else:
             qtwidgets.QMessageBox.about(self, 'Warning', 'End of list')
         
